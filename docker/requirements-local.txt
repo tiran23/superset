@@ -1,0 +1,4 @@
+python-ldap
+trino
+clickhouse-driver==0.2.0
+clickhouse-sqlalchemy==0.1.6
