@@ -16,18 +16,28 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { DatasourceKey } from '@superset-ui/core';
+import { keyBy } from 'lodash';
+import { DatasourcesState } from 'src/dashboard/types';
+import {
+  DatasourcesActionPayload,
+  DatasourcesAction,
+} from '../actions/datasources';
 
-describe('DatasourceKey', () => {
-  it('should handle table data sources', () => {
-    const datasourceKey = new DatasourceKey('5__table');
-    expect(datasourceKey.toString()).toBe('5__table');
-    expect(datasourceKey.toObject()).toEqual({ id: 5, type: 'table' });
-  });
-
-  it('should handle query data sources', () => {
-    const datasourceKey = new DatasourceKey('5__query');
-    expect(datasourceKey.toString()).toBe('5__query');
-    expect(datasourceKey.toObject()).toEqual({ id: 5, type: 'query' });
-  });
-});
+export default function datasourcesReducer(
+  datasources: DatasourcesState | undefined,
+  action: DatasourcesActionPayload,
+) {
+  if (action.type === DatasourcesAction.SET_DATASOURCES) {
+    return {
+      ...datasources,
+      ...keyBy(action.datasources, 'uid'),
+    };
+  }
+  if (action.type === DatasourcesAction.SET_DATASOURCE) {
+    return {
+      ...datasources,
+      [action.key]: action.datasource,
+    };
+  }
+  return datasources || {};
+}

@@ -16,18 +16,27 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { DatasourceKey } from '@superset-ui/core';
+import { Dataset } from '@superset-ui/chart-controls';
+import { getDatasourceUid } from 'src/utils/getDatasourceUid';
+import {
+  AnyDatasourcesAction,
+  SET_DATASOURCE,
+} from '../actions/datasourcesActions';
+import { HYDRATE_EXPLORE, HydrateExplore } from '../actions/hydrateExplore';
 
-describe('DatasourceKey', () => {
-  it('should handle table data sources', () => {
-    const datasourceKey = new DatasourceKey('5__table');
-    expect(datasourceKey.toString()).toBe('5__table');
-    expect(datasourceKey.toObject()).toEqual({ id: 5, type: 'table' });
-  });
-
-  it('should handle query data sources', () => {
-    const datasourceKey = new DatasourceKey('5__query');
-    expect(datasourceKey.toString()).toBe('5__query');
-    expect(datasourceKey.toObject()).toEqual({ id: 5, type: 'query' });
-  });
-});
+export default function datasourcesReducer(
+  // TODO: change type to include other datasource types
+  datasources: { [key: string]: Dataset },
+  action: AnyDatasourcesAction | HydrateExplore,
+) {
+  if (action.type === SET_DATASOURCE) {
+    return {
+      ...datasources,
+      [getDatasourceUid(action.datasource)]: action.datasource,
+    };
+  }
+  if (action.type === HYDRATE_EXPLORE) {
+    return { ...(action as HydrateExplore).data.datasources };
+  }
+  return datasources || {};
+}
