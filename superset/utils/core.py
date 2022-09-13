@@ -27,6 +27,7 @@ import platform
 import re
 import signal
 import smtplib
+import ssl
 import tempfile
 import threading
 import traceback
@@ -182,6 +183,16 @@ class DatasourceType(str, Enum):
     QUERY = "query"
     SAVEDQUERY = "saved_query"
     VIEW = "view"
+
+
+class HeaderDataType(TypedDict):
+    notification_format: str
+    owners: List[int]
+    notification_type: str
+    notification_source: Optional[str]
+    chart_id: Optional[int]
+    dashboard_id: Optional[int]
+    error_text: Optional[str]
 
 
 class DatasourceDict(TypedDict):
@@ -904,6 +915,7 @@ def send_email_smtp(  # pylint: disable=invalid-name,too-many-arguments,too-many
     cc: Optional[str] = None,
     bcc: Optional[str] = None,
     mime_subtype: str = "mixed",
+    header_data: Optional[HeaderDataType] = None,
 ) -> None:
     """
     Send an email with html content, eg:
@@ -917,6 +929,7 @@ def send_email_smtp(  # pylint: disable=invalid-name,too-many-arguments,too-many
     msg["Subject"] = subject
     msg["From"] = smtp_mail_from
     msg["To"] = ", ".join(smtp_mail_to)
+
     msg.preamble = "This is a multi-part message in MIME format."
 
     recipients = smtp_mail_to
@@ -963,8 +976,10 @@ def send_email_smtp(  # pylint: disable=invalid-name,too-many-arguments,too-many
         image.add_header("Content-ID", "<%s>" % msgid)
         image.add_header("Content-Disposition", "inline")
         msg.attach(image)
-
-    send_mime_email(smtp_mail_from, recipients, msg, config, dryrun=dryrun)
+    msg_mutator = config["EMAIL_HEADER_MUTATOR"]
+    # the base notification returns the message without any editing.
+    new_msg = msg_mutator(msg, **(header_data or {}))
+    send_mime_email(smtp_mail_from, recipients, new_msg, config, dryrun=dryrun)
 
 
 def send_mime_email(
@@ -980,23 +995,28 @@ def send_mime_email(
     smtp_password = config["SMTP_PASSWORD"]
     smtp_starttls = config["SMTP_STARTTLS"]
     smtp_ssl = config["SMTP_SSL"]
+    smpt_ssl_server_auth = config["SMTP_SSL_SERVER_AUTH"]
 
-    if not dryrun:
-        smtp = (
-            smtplib.SMTP_SSL(smtp_host, smtp_port)
-            if smtp_ssl
-            else smtplib.SMTP(smtp_host, smtp_port)
-        )
-        if smtp_starttls:
-            smtp.starttls()
-        if smtp_user and smtp_password:
-            smtp.login(smtp_user, smtp_password)
-        logger.debug("Sent an email to %s", str(e_to))
-        smtp.sendmail(e_from, e_to, mime_msg.as_string())
-        smtp.quit()
-    else:
+    if dryrun:
         logger.info("Dryrun enabled, email notification content is below:")
         logger.info(mime_msg.as_string())
+        return
+
+    # Default ssl context is SERVER_AUTH using the default system
+    # root CA certificates
+    ssl_context = ssl.create_default_context() if smpt_ssl_server_auth else None
+    smtp = (
+        smtplib.SMTP_SSL(smtp_host, smtp_port, context=ssl_context)
+        if smtp_ssl
+        else smtplib.SMTP(smtp_host, smtp_port)
+    )
+    if smtp_starttls:
+        smtp.starttls(context=ssl_context)
+    if smtp_user and smtp_password:
+        smtp.login(smtp_user, smtp_password)
+    logger.debug("Sent an email to %s", str(e_to))
+    smtp.sendmail(e_from, e_to, mime_msg.as_string())
+    smtp.quit()
 
 
 def get_email_address_list(address_string: str) -> List[str]:
@@ -1249,6 +1269,17 @@ def is_adhoc_column(column: Column) -> TypeGuard[AdhocColumn]:
     return isinstance(column, dict)
 
 
+def get_base_axis_column(columns: Optional[List[Column]]) -> Optional[AdhocColumn]:
+    if columns is None:
+        return None
+    axis_cols = [
+        col
+        for col in columns
+        if is_adhoc_column(col) and col.get("columnType") == "BASE_AXIS"
+    ]
+    return axis_cols[0] if axis_cols else None
+
+
 def get_column_name(
     column: Column, verbose_map: Optional[Dict[str, Any]] = None
 ) -> str:
@@ -1294,7 +1325,7 @@ def get_metric_name(
             sql_expression = metric.get("sqlExpression")
             if sql_expression:
                 return sql_expression
-        elif expression_type == "SIMPLE":
+        if expression_type == "SIMPLE":
             column: AdhocMetricColumn = metric.get("column") or {}
             column_name = column.get("column_name")
             aggregate = metric.get("aggregate")
@@ -1302,10 +1333,12 @@ def get_metric_name(
                 return f"{aggregate}({column_name})"
             if column_name:
                 return column_name
-        raise ValueError(__("Invalid metric object"))
 
-    verbose_map = verbose_map or {}
-    return verbose_map.get(metric, metric)  # type: ignore
+    if isinstance(metric, str):
+        verbose_map = verbose_map or {}
+        return verbose_map.get(metric, metric)
+
+    raise ValueError(__("Invalid metric object: %(metric)s", metric=str(metric)))
 
 
 def get_column_names(
@@ -1687,7 +1720,7 @@ def extract_dataframe_dtypes(
         column_object = columns_by_name.get(column)
         series = df[column]
         inferred_type = infer_dtype(series)
-        if isinstance(column_object, dict):  # type: ignore
+        if isinstance(column_object, dict):
             generic_type = (
                 GenericDataType.TEMPORAL
                 if column_object and column_object.get("is_dttm")
@@ -1728,7 +1761,7 @@ def is_test() -> bool:
     return strtobool(os.environ.get("SUPERSET_TESTENV", "false"))
 
 
-def get_time_filter_status(  # pylint: disable=too-many-branches
+def get_time_filter_status(
     datasource: "BaseDatasource",
     applied_time_extras: Dict[str, str],
 ) -> Tuple[List[Dict[str, str]], List[Dict[str, str]]]:

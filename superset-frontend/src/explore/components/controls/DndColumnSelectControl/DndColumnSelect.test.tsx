@@ -33,19 +33,23 @@ const defaultProps: DndColumnSelectProps = {
   actions: { setControlValue: jest.fn() },
 };
 
-test('renders with default props', () => {
-  render(<DndColumnSelect {...defaultProps} />, { useDnd: true });
-  expect(screen.getByText('Drop columns here')).toBeInTheDocument();
+test('renders with default props', async () => {
+  render(<DndColumnSelect {...defaultProps} />, {
+    useDnd: true,
+    useRedux: true,
+  });
+  expect(await screen.findByText('Drop columns here')).toBeInTheDocument();
 });
 
-test('renders with value', () => {
+test('renders with value', async () => {
   render(<DndColumnSelect {...defaultProps} value="string" />, {
     useDnd: true,
+    useRedux: true,
   });
-  expect(screen.getByText('Column A')).toBeInTheDocument();
+  expect(await screen.findByText('Column A')).toBeInTheDocument();
 });
 
-test('renders adhoc column', () => {
+test('renders adhoc column', async () => {
   render(
     <DndColumnSelect
       {...defaultProps}
@@ -55,8 +59,8 @@ test('renders adhoc column', () => {
         expressionType: 'SQL',
       }}
     />,
-    { useDnd: true },
+    { useDnd: true, useRedux: true },
   );
-  expect(screen.getByText('adhoc column')).toBeVisible();
+  expect(await screen.findByText('adhoc column')).toBeVisible();
   expect(screen.getByLabelText('calculator')).toBeVisible();
 });

@@ -92,7 +92,7 @@ const buttonsStyles = (theme: SupersetTheme) => css`
   & .fave-unfave-icon {
     padding: 0 ${theme.gridUnit}px;
 
-    &:first-child {
+    &:first-of-type {
       padding-left: 0;
     }
   }
@@ -152,6 +152,7 @@ export const PageHeaderWithActions = ({
               css={menuTriggerStyles}
               buttonStyle="tertiary"
               aria-label={t('Menu actions trigger')}
+              data-test="actions-trigger"
             >
               <Icons.MoreHoriz
                 iconColor={theme.colors.primary.dark2}
