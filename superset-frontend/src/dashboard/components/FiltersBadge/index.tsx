@@ -23,7 +23,7 @@ import cx from 'classnames';
 import { DataMaskStateWithId, Filters } from '@superset-ui/core';
 import Icons from 'src/components/Icons';
 import { usePrevious } from 'src/hooks/usePrevious';
-import { setFocusedNativeFilter } from 'src/dashboard/actions/nativeFilters';
+import { setDirectPathToChild } from 'src/dashboard/actions/dashboardState';
 import DetailsPanelPopover from './DetailsPanel';
 import { Pill } from './Styles';
 import {
@@ -31,7 +31,7 @@ import {
   IndicatorStatus,
   selectIndicatorsForChart,
   selectNativeIndicatorsForChart,
-} from './selectors';
+} from '../nativeFilters/selectors';
 import {
   ChartsState,
   DashboardInfo,
@@ -87,7 +87,7 @@ export const FiltersBadge = ({ chartId }: FiltersBadgeProps) => {
 
   const onHighlightFilterSource = useCallback(
     (path: string[]) => {
-      dispatch(setFocusedNativeFilter(path[0]));
+      dispatch(setDirectPathToChild(path));
     },
     [dispatch],
   );
@@ -211,66 +211,27 @@ export const FiltersBadge = ({ chartId }: FiltersBadgeProps) => {
       ),
     [indicators],
   );
-  const unsetIndicators = useMemo(
-    () =>
-      indicators.filter(
-        indicator => indicator.status === IndicatorStatus.Unset,
-      ),
-    [indicators],
-  );
-  const incompatibleIndicators = useMemo(
-    () =>
-      indicators.filter(
-        indicator => indicator.status === IndicatorStatus.Incompatible,
-      ),
-    [indicators],
-  );
 
-  if (
-    !appliedCrossFilterIndicators.length &&
-    !appliedIndicators.length &&
-    !incompatibleIndicators.length &&
-    !unsetIndicators.length
-  ) {
+  if (!appliedCrossFilterIndicators.length && !appliedIndicators.length) {
     return null;
   }
-
-  const isInactive =
-    !appliedCrossFilterIndicators.length &&
-    !appliedIndicators.length &&
-    !incompatibleIndicators.length;
 
   return (
     <DetailsPanelPopover
       appliedCrossFilterIndicators={appliedCrossFilterIndicators}
       appliedIndicators={appliedIndicators}
-      unsetIndicators={unsetIndicators}
-      incompatibleIndicators={incompatibleIndicators}
       onHighlightFilterSource={onHighlightFilterSource}
     >
       <Pill
         className={cx(
           'filter-counts',
-          !!incompatibleIndicators.length && 'has-incompatible-filters',
           !!appliedCrossFilterIndicators.length && 'has-cross-filters',
-          isInactive && 'filters-inactive',
         )}
       >
         <Icons.Filter iconSize="m" />
-        {!isInactive && (
-          <span data-test="applied-filter-count">
-            {appliedIndicators.length + appliedCrossFilterIndicators.length}
-          </span>
-        )}
-        {incompatibleIndicators.length ? (
-          <>
-            {' '}
-            <Icons.AlertSolid />
-            <span data-test="incompatible-filter-count">
-              {incompatibleIndicators.length}
-            </span>
-          </>
-        ) : null}
+        <span data-test="applied-filter-count">
+          {appliedIndicators.length + appliedCrossFilterIndicators.length}
+        </span>
       </Pill>
     </DetailsPanelPopover>
   );
