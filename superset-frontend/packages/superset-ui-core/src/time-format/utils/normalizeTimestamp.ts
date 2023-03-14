@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,8 +17,12 @@
  * under the License.
  */
 
-import { NativeFilterScope } from '@superset-ui/core';
+const TS_REGEX = /(\d{4}-\d{2}-\d{2})[\sT](\d{2}:\d{2}:\d{2}\.?\d*).*/;
 
-export type CrossFilterScopingFormType = {
-  scope: NativeFilterScope;
-};
+export default function normalizeTimestamp(value: string): string {
+  const match = value.match(TS_REGEX);
+  if (match) {
+    return `${match[1]}T${match[2]}Z`;
+  }
+  return value;
+}
