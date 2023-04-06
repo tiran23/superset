@@ -473,9 +473,12 @@ DEFAULT_FEATURE_FLAGS: Dict[str, bool] = {
     # Enable caching per impersonation key (e.g username) in a datasource where user
     # impersonation is enabled
     "CACHE_IMPERSONATION": False,
+    # Enable caching per user key for Superset cache (not datatabase cache impersonation)
+    "CACHE_QUERY_BY_USER": False,
     # Enable sharing charts with embedding
     "EMBEDDABLE_CHARTS": True,
     "DRILL_TO_DETAIL": False,
+    "DRILL_BY": False,
     "DATAPANEL_CLOSED_BY_DEFAULT": False,
     "HORIZONTAL_FILTER_BAR": False,
     # The feature is off by default, and currently only supported in Presto and Postgres,
@@ -1261,6 +1264,10 @@ ALERT_REPORTS_WORKING_TIME_OUT_LAG = int(timedelta(seconds=10).total_seconds())
 # if ALERT_REPORTS_WORKING_TIME_OUT_KILL is True, set a celery hard timeout
 # Equal to working timeout + ALERT_REPORTS_WORKING_SOFT_TIME_OUT_LAG
 ALERT_REPORTS_WORKING_SOFT_TIME_OUT_LAG = int(timedelta(seconds=1).total_seconds())
+# Default values that user using when creating alert
+ALERT_REPORTS_DEFAULT_WORKING_TIMEOUT = 3600
+ALERT_REPORTS_DEFAULT_RETENTION = 90
+ALERT_REPORTS_DEFAULT_CRON_VALUE = "0 * * * *"  # every hour
 # If set to true no notification is sent, the worker will just log a message.
 # Useful for debugging
 ALERT_REPORTS_NOTIFICATION_DRY_RUN = False
@@ -1302,9 +1309,8 @@ WEBDRIVER_AUTH_FUNC = None
 WEBDRIVER_CONFIGURATION: Dict[Any, Any] = {"service_log_path": "/dev/null"}
 
 # Additional args to be passed as arguments to the config object
-# Note: these options are Chrome-specific. For FF, these should
-# only include the "--headless" arg
-WEBDRIVER_OPTION_ARGS = ["--headless", "--marionette"]
+# Note: If using Chrome, you'll want to add the "--marionette" arg.
+WEBDRIVER_OPTION_ARGS = ["--headless"]
 
 # The base URL to query for accessing the user interface
 WEBDRIVER_BASEURL = "http://0.0.0.0:8080/"

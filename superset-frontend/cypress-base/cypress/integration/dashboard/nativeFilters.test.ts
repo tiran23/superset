@@ -576,7 +576,7 @@ describe('Native filters', () => {
         },
       );
       saveNativeFilterSettings([SAMPLE_CHART]);
-      enterNativeFilterEditModal();
+      enterNativeFilterEditModal(false);
       cy.get(nativeFilters.modal.tabsList.removeTab)
         .should('be.visible')
         .first()
@@ -631,7 +631,8 @@ describe('Native filters', () => {
     it('Verify setting options and tooltips for value filter', () => {
       enterNativeFilterEditModal(false);
       cy.contains('Filter value is required').should('be.visible').click();
-      checkNativeFilterTooltip(0, nativeFilterTooltips.defaultValue);
+      checkNativeFilterTooltip(0, nativeFilterTooltips.preFilter);
+      checkNativeFilterTooltip(1, nativeFilterTooltips.defaultValue);
       cy.get(nativeFilters.modal.container).should('be.visible');
       valueNativeFilterOptions.forEach(el => {
         cy.contains(el);
@@ -640,10 +641,10 @@ describe('Native filters', () => {
       cy.get(
         nativeFilters.filterConfigurationSections.checkedCheckbox,
       ).contains('Can select multiple values');
-      checkNativeFilterTooltip(1, nativeFilterTooltips.required);
-      checkNativeFilterTooltip(2, nativeFilterTooltips.defaultToFirstItem);
-      checkNativeFilterTooltip(3, nativeFilterTooltips.searchAllFilterOptions);
-      checkNativeFilterTooltip(4, nativeFilterTooltips.inverseSelection);
+      checkNativeFilterTooltip(2, nativeFilterTooltips.required);
+      checkNativeFilterTooltip(3, nativeFilterTooltips.defaultToFirstItem);
+      checkNativeFilterTooltip(4, nativeFilterTooltips.searchAllFilterOptions);
+      checkNativeFilterTooltip(5, nativeFilterTooltips.inverseSelection);
       clickOnAddFilterInModal();
       cy.contains('Values are dependent on other filters').should('exist');
     });
@@ -812,7 +813,7 @@ describe('Native filters', () => {
         force: true,
       });
       cancelNativeFilterSettings();
-      enterNativeFilterEditModal();
+      enterNativeFilterEditModal(false);
       cy.get(nativeFilters.filtersList.removeIcon).first().click();
       cy.contains('You have removed this filter.').should('be.visible');
     });
@@ -855,7 +856,7 @@ describe('Native filters', () => {
         .contains(testItems.filterDefaultValue)
         .should('be.visible');
       validateFilterNameOnDashboard(testItems.topTenChart.filterColumn);
-      enterNativeFilterEditModal();
+      enterNativeFilterEditModal(false);
       deleteNativeFilter();
       saveNativeFilterSettings([SAMPLE_CHART]);
       cy.get(dataTestChartName(testItems.topTenChart.name)).within(() => {

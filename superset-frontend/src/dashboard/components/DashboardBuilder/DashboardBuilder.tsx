@@ -29,10 +29,12 @@ import React, {
 import {
   addAlpha,
   css,
+  FeatureFlag,
   JsonObject,
   styled,
   t,
   useTheme,
+  useElementOnScreen,
 } from '@superset-ui/core';
 import { Global } from '@emotion/react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -56,8 +58,7 @@ import {
   setDirectPathToChild,
   setEditMode,
 } from 'src/dashboard/actions/dashboardState';
-import { useElementOnScreen } from 'src/hooks/useElementOnScreen';
-import { FeatureFlag, isFeatureEnabled } from 'src/featureFlags';
+import { isFeatureEnabled } from 'src/featureFlags';
 import {
   deleteTopLevelTabs,
   handleComponentDrop,
@@ -582,7 +583,10 @@ const DashboardBuilder: FC<DashboardBuilderProps> = () => {
         {!hideDashboardHeader && <DashboardHeader />}
         {showFilterBar &&
           filterBarOrientation === FilterBarOrientation.HORIZONTAL && (
-            <FilterBar orientation={FilterBarOrientation.HORIZONTAL} />
+            <FilterBar
+              orientation={FilterBarOrientation.HORIZONTAL}
+              hidden={isReport}
+            />
           )}
         {dropIndicatorProps && <div {...dropIndicatorProps} />}
         {!isReport && topLevelTabs && !uiConfig.hideNav && (
@@ -654,18 +658,17 @@ const DashboardBuilder: FC<DashboardBuilderProps> = () => {
                 >
                   <StickyPanel ref={containerRef} width={filterBarWidth}>
                     <ErrorBoundary>
-                      {!isReport && (
-                        <FilterBar
-                          orientation={FilterBarOrientation.VERTICAL}
-                          verticalConfig={{
-                            filtersOpen: dashboardFiltersOpen,
-                            toggleFiltersBar: toggleDashboardFiltersOpen,
-                            width: filterBarWidth,
-                            height: filterBarHeight,
-                            offset: filterBarOffset,
-                          }}
-                        />
-                      )}
+                      <FilterBar
+                        orientation={FilterBarOrientation.VERTICAL}
+                        verticalConfig={{
+                          filtersOpen: dashboardFiltersOpen,
+                          toggleFiltersBar: toggleDashboardFiltersOpen,
+                          width: filterBarWidth,
+                          height: filterBarHeight,
+                          offset: filterBarOffset,
+                        }}
+                        hidden={isReport}
+                      />
                     </ErrorBoundary>
                   </StickyPanel>
                 </FiltersPanel>

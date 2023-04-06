@@ -250,6 +250,7 @@ class SupersetSecurityManager(  # pylint: disable=too-many-public-methods
         ("can_export_csv", "Query"),
         ("can_get_results", "SQLLab"),
         ("can_execute_sql_query", "SQLLab"),
+        ("can_estimate_query_cost", "SQL Lab"),
         ("can_export_csv", "SQLLab"),
         ("can_sql_json", "Superset"),  # Deprecated permission remove on 3.0.0
         ("can_sqllab_history", "Superset"),
@@ -1787,7 +1788,7 @@ class SupersetSecurityManager(  # pylint: disable=too-many-public-methods
         return []
 
     def raise_for_access(
-        # pylint: disable=too-many-arguments,too-many-locals
+        # pylint: disable=too-many-arguments, too-many-locals
         self,
         database: Optional["Database"] = None,
         datasource: Optional["BaseDatasource"] = None,
@@ -1823,8 +1824,9 @@ class SupersetSecurityManager(  # pylint: disable=too-many-public-methods
                 return
 
             if query:
+                default_schema = database.get_default_schema_for_query(query)
                 tables = {
-                    Table(table_.table, table_.schema or query.schema)
+                    Table(table_.table, table_.schema or default_schema)
                     for table_ in sql_parse.ParsedQuery(query.sql).tables
                 }
             elif table:
