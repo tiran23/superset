@@ -16,6 +16,8 @@
 # limitations under the License.
 #
 
+apt-get update && apt-get install -y libldap2-dev libsasl2-dev
+
 set -eo pipefail
 
 REQUIREMENTS_LOCAL="/app/docker/requirements-local.txt"
