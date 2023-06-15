@@ -24,3 +24,23 @@ export const DEFAULT_D3_FORMAT: FormatLocaleDefinition = {
   grouping: [3],
   currency: ['$', ''],
 };
+
+export const DEFALT_D3_FORMAT_PREFIXIES = {
+  y: 'e-22',
+  z: 'e-21',
+  a: 'а',
+  f: 'ф',
+  p: 'п',
+  n: 'н',
+  µ: 'мк',
+  m: 'м',
+  '': '',
+  k: 'К',
+  M: 'М',
+  G: 'Г',
+  T: 'Т',
+  P: 'П',
+  E: 'Э',
+  Z: 'Z',
+  Y: 'Y',
+};
