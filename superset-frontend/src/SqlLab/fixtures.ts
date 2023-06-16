@@ -185,8 +185,6 @@ export const defaultQueryEditor = {
   name: 'Untitled Query 1',
   schema: 'main',
   remoteId: null,
-  tableOptions: [],
-  functionNames: [],
   hideLeftBar: false,
   templateParams: '{}',
 };
@@ -692,17 +690,17 @@ export const testQuery: ISaveableDatasource = {
   sql: 'SELECT *',
   columns: [
     {
-      name: 'Column 1',
+      column_name: 'Column 1',
       type: DatasourceType.Query,
       is_dttm: false,
     },
     {
-      name: 'Column 3',
+      column_name: 'Column 3',
       type: DatasourceType.Query,
       is_dttm: false,
     },
     {
-      name: 'Column 2',
+      column_name: 'Column 2',
       type: DatasourceType.Query,
       is_dttm: true,
     },
@@ -712,7 +710,6 @@ export const testQuery: ISaveableDatasource = {
 export const mockdatasets = [...new Array(3)].map((_, i) => ({
   changed_by_name: 'user',
   kind: i === 0 ? 'virtual' : 'physical', // ensure there is 1 virtual
-  changed_by_url: 'changed_by_url',
   changed_by: 'user',
   changed_on: new Date().toISOString(),
   database_name: `db ${i}`,
