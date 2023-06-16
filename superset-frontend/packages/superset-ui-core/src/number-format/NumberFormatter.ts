@@ -19,7 +19,7 @@
 import { ExtensibleFunction } from '../models';
 import { isRequired } from '../utils';
 import { NumberFormatFunction } from './types';
-
+import { DEFALT_D3_FORMAT_PREFIXIES } from './D3FormatConfig';
 export const PREVIEW_VALUE = 12345.432;
 
 export interface NumberFormatterConfig {
@@ -75,7 +75,14 @@ class NumberFormatter extends ExtensibleFunction {
       return '-∞';
     }
 
-    return this.formatFunc(value);
+    let res = this.formatFunc(value);
+    if (this.id.includes('s')) {
+      const prefix = res[res.length - 1];
+      const new_prefix = DEFALT_D3_FORMAT_PREFIXIES[prefix];
+      res = res.replace(prefix, new_prefix);
+    }
+
+    return res;
   }
 
   preview(value = PREVIEW_VALUE) {

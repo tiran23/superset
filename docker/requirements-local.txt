@@ -1,4 +1,4 @@
-#python-ldap == 3.4.2
+#python-ldap
 #trino
-#clickhouse-connect == 0.2.7
-
+#clickhouse-driver==0.2.0
+#clickhouse-sqlalchemy==0.1.6
