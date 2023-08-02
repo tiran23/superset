@@ -24,13 +24,14 @@ from flask_appbuilder.models.sqla.interface import SQLAInterface
 import superset.models.core as models
 from superset import event_logger, security_manager
 from superset.constants import MODEL_API_RW_METHOD_PERMISSION_MAP
+from superset.daos.log import LogDAO
 from superset.exceptions import SupersetSecurityException
 from superset.superset_typing import FlaskResponse
 from superset.views.base_api import BaseSupersetModelRestApi, statsd_metrics
 from superset.views.log import LogMixin
-from superset.views.log.dao import LogDAO
 from superset.views.log.schemas import (
     get_recent_activity_schema,
+    openapi_spec_methods_override,
     RecentActivityResponseSchema,
     RecentActivitySchema,
 )
@@ -64,6 +65,9 @@ class LogRestApi(LogMixin, BaseSupersetModelRestApi):
         RecentActivitySchema,
     )
 
+    openapi_spec_methods = openapi_spec_methods_override
+    """ Overrides GET methods OpenApi descriptions """
+
     @staticmethod
     def is_enabled() -> bool:
         return app.config["FAB_ADD_SECURITY_VIEWS"] and app.config["SUPERSET_LOG_VIEW"]
@@ -92,7 +96,7 @@ class LogRestApi(LogMixin, BaseSupersetModelRestApi):
         log_to_statsd=False,
     )
     def recent_activity(self, **kwargs: Any) -> FlaskResponse:
-        """Get recent activity data for a user
+        """Get recent activity data for a user.
         ---
         get:
           summary: Get recent activity data for a user

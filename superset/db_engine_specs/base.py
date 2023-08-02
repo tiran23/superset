@@ -23,7 +23,7 @@ import logging
 import re
 from datetime import datetime
 from re import Match, Pattern
-from typing import Any, Callable, ContextManager, NamedTuple, TYPE_CHECKING, Union
+from typing import Any, Callable, cast, ContextManager, NamedTuple, TYPE_CHECKING, Union
 
 import pandas as pd
 import sqlparse
@@ -53,7 +53,7 @@ from superset.constants import TimeGrain as TimeGrainConstants
 from superset.databases.utils import make_url_safe
 from superset.errors import ErrorLevel, SupersetError, SupersetErrorType
 from superset.sql_parse import ParsedQuery, Table
-from superset.superset_typing import ResultSetColumnType
+from superset.superset_typing import ResultSetColumnType, SQLAColumnType
 from superset.utils import core as utils
 from superset.utils.core import ColumnSpec, GenericDataType
 from superset.utils.hashing import md5_sha_from_str
@@ -71,6 +71,13 @@ ColumnTypeMapping = tuple[
 ]
 
 logger = logging.getLogger()
+
+
+def convert_inspector_columns(cols: list[SQLAColumnType]) -> list[ResultSetColumnType]:
+    result_set_columns: list[ResultSetColumnType] = []
+    for col in cols:
+        result_set_columns.append({"column_name": col.get("name"), **col})  # type: ignore
+    return result_set_columns
 
 
 class TimeGrain(NamedTuple):
@@ -99,7 +106,7 @@ builtin_time_grains: dict[str | None, str] = {
     TimeGrainConstants.WEEK_STARTING_SUNDAY: __("Week starting Sunday"),
     TimeGrainConstants.WEEK_STARTING_MONDAY: __("Week starting Monday"),
     TimeGrainConstants.WEEK_ENDING_SATURDAY: __("Week ending Saturday"),
-    TimeGrainConstants.WEEK_ENDING_SUNDAY: __("Week_ending Sunday"),
+    TimeGrainConstants.WEEK_ENDING_SUNDAY: __("Week ending Sunday"),
 }
 
 
@@ -151,6 +158,7 @@ class MetricType(TypedDict, total=False):
     metric_type: str | None
     description: str | None
     d3format: str | None
+    currency: str | None
     warning_text: str | None
     extra: str | None
 
@@ -1074,21 +1082,44 @@ class BaseEngineSpec:  # pylint: disable=too-many-public-methods
 
         For some databases (like MySQL, Presto, Snowflake) this requires modifying the
         SQLAlchemy URI before creating the connection. For others (like Postgres), it
-        requires additional parameters in ``connect_args``.
+        requires additional parameters in ``connect_args`` or running pre-session
+        queries with ``set`` parameters.
 
-        When a DB engine spec implements this method it should also have the attribute
-        ``supports_dynamic_schema`` set to true, so that Superset knows in which schema a
-        given query is running in order to enforce permissions (see #23385 and #23401).
+        When a DB engine spec implements this method or ``get_prequeries`` (see below) it
+        should also have the attribute ``supports_dynamic_schema`` set to true, so that
+        Superset knows in which schema a given query is running in order to enforce
+        permissions (see #23385 and #23401).
 
         Currently, changing the catalog is not supported. The method accepts a catalog so
         that when catalog support is added to Superset the interface remains the same.
         This is important because DB engine specs can be installed from 3rd party
-        packages.
+        packages, so we want to keep these methods as stable as possible.
         """
         return uri, {
             **connect_args,
             **cls.enforce_uri_query_params.get(uri.get_driver_name(), {}),
         }
+
+    @classmethod
+    def get_prequeries(
+        cls,
+        catalog: str | None = None,  # pylint: disable=unused-argument
+        schema: str | None = None,  # pylint: disable=unused-argument
+    ) -> list[str]:
+        """
+        Return pre-session queries.
+
+        These are currently used as an alternative to ``adjust_engine_params`` for
+        databases where the selected schema cannot be specified in the SQLAlchemy URI or
+        connection arguments.
+
+        For example, in order to specify a default schema in RDS we need to run a query
+        at the beggining of the session:
+
+            sql> set search_path = my_schema;
+
+        """
+        return []
 
     @classmethod
     def patch(cls) -> None:
@@ -1223,7 +1254,7 @@ class BaseEngineSpec:  # pylint: disable=too-many-public-methods
     @classmethod
     def get_columns(
         cls, inspector: Inspector, table_name: str, schema: str | None
-    ) -> list[dict[str, Any]]:
+    ) -> list[ResultSetColumnType]:
         """
         Get all columns from a given schema and table
 
@@ -1232,7 +1263,9 @@ class BaseEngineSpec:  # pylint: disable=too-many-public-methods
         :param schema: Schema name. If omitted, uses default schema for database
         :return: All columns in table
         """
-        return inspector.get_columns(table_name, schema)
+        return convert_inspector_columns(
+            cast(list[SQLAColumnType], inspector.get_columns(table_name, schema))
+        )
 
     @classmethod
     def get_metrics(  # pylint: disable=unused-argument
@@ -1261,7 +1294,7 @@ class BaseEngineSpec:  # pylint: disable=too-many-public-methods
         schema: str | None,
         database: Database,
         query: Select,
-        columns: list[dict[str, Any]] | None = None,
+        columns: list[ResultSetColumnType] | None = None,
     ) -> Select | None:
         """
         Add a where clause to a query to reference only the most recent partition
@@ -1278,8 +1311,8 @@ class BaseEngineSpec:  # pylint: disable=too-many-public-methods
         return None
 
     @classmethod
-    def _get_fields(cls, cols: list[dict[str, Any]]) -> list[Any]:
-        return [column(c["name"]) for c in cols]
+    def _get_fields(cls, cols: list[ResultSetColumnType]) -> list[Any]:
+        return [column(c["column_name"]) for c in cols]
 
     @classmethod
     def select_star(  # pylint: disable=too-many-arguments,too-many-locals
@@ -1292,7 +1325,7 @@ class BaseEngineSpec:  # pylint: disable=too-many-public-methods
         show_cols: bool = False,
         indent: bool = True,
         latest_partition: bool = True,
-        cols: list[dict[str, Any]] | None = None,
+        cols: list[ResultSetColumnType] | None = None,
     ) -> str:
         """
         Generate a "SELECT * from [schema.]table_name" query with appropriate limit.
@@ -1348,7 +1381,9 @@ class BaseEngineSpec:  # pylint: disable=too-many-public-methods
         :param cursor: Cursor instance
         :return: Dictionary with different costs
         """
-        raise Exception("Database does not support cost estimation")
+        raise Exception(  # pylint: disable=broad-exception-raised
+            "Database does not support cost estimation"
+        )
 
     @classmethod
     def query_cost_formatter(
@@ -1360,7 +1395,9 @@ class BaseEngineSpec:  # pylint: disable=too-many-public-methods
         :param raw_cost: Raw estimate from `estimate_query_cost`
         :return: Human readable cost estimate
         """
-        raise Exception("Database does not support cost estimation")
+        raise Exception(  # pylint: disable=broad-exception-raised
+            "Database does not support cost estimation"
+        )
 
     @classmethod
     def process_statement(cls, statement: str, database: Database) -> str:
@@ -1402,7 +1439,9 @@ class BaseEngineSpec:  # pylint: disable=too-many-public-methods
         """
         extra = database.get_extra() or {}
         if not cls.get_allow_cost_estimate(extra):
-            raise Exception("Database does not support cost estimation")
+            raise Exception(  # pylint: disable=broad-exception-raised
+                "Database does not support cost estimation"
+            )
 
         parsed_query = sql_parse.ParsedQuery(sql)
         statements = parsed_query.get_statements()
@@ -1843,6 +1882,16 @@ class BaseEngineSpec:  # pylint: disable=too-many-public-methods
         ).intersection(sqlalchemy_uri.query):
             raise ValueError(f"Forbidden query parameter(s): {existing_disallowed}")
 
+    @classmethod
+    def denormalize_name(cls, dialect: Dialect, name: str) -> str:
+        if (
+            hasattr(dialect, "requires_name_normalize")
+            and dialect.requires_name_normalize
+        ):
+            return dialect.denormalize_name(name)
+
+        return name
+
 
 # schema for adding a database by providing parameters instead of the
 # full SQLAlchemy URI
@@ -1870,6 +1919,10 @@ class BasicParametersSchema(Schema):
     encryption = fields.Boolean(
         required=False,
         metadata={"description": __("Use an encrypted connection to the database")},
+    )
+    ssh = fields.Boolean(
+        required=False,
+        metadata={"description": __("Use an ssh tunnel connection to the database")},
     )
 
 
@@ -1924,7 +1977,9 @@ class BasicParametersMixin:
         query = parameters.get("query", {}).copy()
         if parameters.get("encryption"):
             if not cls.encryption_parameters:
-                raise Exception("Unable to build a URL with encryption enabled")
+                raise Exception(  # pylint: disable=broad-exception-raised
+                    "Unable to build a URL with encryption enabled"
+                )
             query.update(cls.encryption_parameters)
 
         return str(

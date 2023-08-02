@@ -69,12 +69,10 @@
 |can slice on Superset|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|O|
 |can sync druid source on Superset|:heavy_check_mark:|O|O|O|
 |can explore on Superset|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|O|
-|can slice json on Superset|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|O|
 |can approve on Superset|:heavy_check_mark:|O|O|O|
 |can explore json on Superset|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|O|
 |can fetch datasource metadata on Superset|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|O|
 |can csrf token on Superset|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|O|
-|can annotation json on Superset|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|O|
 |can sqllab on Superset|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|
 |can select star on Superset|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|O|
 |can warm up cache on Superset|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|O|
@@ -83,9 +81,9 @@
 |can available domains on Superset|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|O|
 |can request access on Superset|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|O|
 |can dashboard on Superset|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|O|
-|can post on TableSchemaView|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|O|
-|can expanded on TableSchemaView|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|O|
-|can delete on TableSchemaView|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|O|
+|can post on TableSchemaView|:heavy_check_mark:|:heavy_check_mark:|O|O|
+|can expanded on TableSchemaView|:heavy_check_mark:|:heavy_check_mark:|O|O|
+|can delete on TableSchemaView|:heavy_check_mark:|:heavy_check_mark:|O|O|
 |can get on TabStateView|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|
 |can post on TabStateView|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|
 |can delete query on TabStateView|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|

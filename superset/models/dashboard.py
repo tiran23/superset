@@ -49,7 +49,7 @@ from sqlalchemy.sql.elements import BinaryExpression
 from superset import app, db, is_feature_enabled, security_manager
 from superset.connectors.base.models import BaseDatasource
 from superset.connectors.sqla.models import SqlaTable, SqlMetric, TableColumn
-from superset.datasource.dao import DatasourceDAO
+from superset.daos.datasource import DatasourceDAO
 from superset.extensions import cache_manager
 from superset.models.filter_set import FilterSet
 from superset.models.helpers import AuditMixinNullable, ImportExportMixin
@@ -115,8 +115,8 @@ dashboard_user = Table(
     "dashboard_user",
     metadata,
     Column("id", Integer, primary_key=True),
-    Column("user_id", Integer, ForeignKey("ab_user.id")),
-    Column("dashboard_id", Integer, ForeignKey("dashboards.id")),
+    Column("user_id", Integer, ForeignKey("ab_user.id", ondelete="CASCADE")),
+    Column("dashboard_id", Integer, ForeignKey("dashboards.id", ondelete="CASCADE")),
 )
 
 
@@ -141,14 +141,19 @@ class Dashboard(Model, AuditMixinNullable, ImportExportMixin):
     css = Column(Text)
     certified_by = Column(Text)
     certification_details = Column(Text)
-    json_metadata = Column(Text)
+    json_metadata = Column(utils.MediumText())
     slug = Column(String(255), unique=True)
     slices: list[Slice] = relationship(
         Slice, secondary=dashboard_slices, backref="dashboards"
     )
-    owners = relationship(security_manager.user_model, secondary=dashboard_user)
+    owners = relationship(
+        security_manager.user_model,
+        secondary=dashboard_user,
+        passive_deletes=True,
+    )
     tags = relationship(
         "Tag",
+        overlaps="objects,tag,tags,tags",
         secondary="tagged_object",
         primaryjoin="and_(Dashboard.id == TaggedObject.object_id)",
         secondaryjoin="and_(TaggedObject.tag_id == Tag.id, "
