@@ -20,7 +20,6 @@
 import getInitialState, { dedupeTabHistory } from './getInitialState';
 
 const apiData = {
-  defaultDbId: 1,
   common: {
     conf: {
       DEFAULT_SQLLAB_LIMIT: 1,
@@ -43,7 +42,7 @@ const apiDataWithTabState = {
 };
 describe('getInitialState', () => {
   it('should output the user that is passed in', () => {
-    expect(getInitialState(apiData).sqlLab.user.userId).toEqual(1);
+    expect(getInitialState(apiData).user.userId).toEqual(1);
   });
   it('should return undefined instead of null for templateParams', () => {
     expect(

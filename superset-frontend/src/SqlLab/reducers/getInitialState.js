@@ -28,13 +28,11 @@ export function dedupeTabHistory(tabHistory) {
 }
 
 export default function getInitialState({
-  defaultDbId,
   common,
   active_tab: activeTab,
   tab_state_ids: tabStateIds = [],
   databases,
   queries: queries_,
-  requested_query: requestedQuery,
   user,
 }) {
   /**
@@ -55,7 +53,7 @@ export default function getInitialState({
     latestQueryId: null,
     autorun: false,
     templateParams: null,
-    dbId: defaultDbId,
+    dbId: common.conf.SQLLAB_DEFAULT_DBID,
     queryLimit: common.conf.DEFAULT_SQLLAB_LIMIT,
     validationResult: {
       id: null,
@@ -201,11 +199,9 @@ export default function getInitialState({
       tabHistory: dedupeTabHistory(tabHistory),
       tables: Object.values(tables),
       queriesLastUpdate: Date.now(),
-      user,
       unsavedQueryEditor,
       queryCostEstimates: {},
     },
-    requestedQuery,
     messageToasts: getToastsFromPyFlashMessages(
       (common || {}).flash_messages || [],
     ),
@@ -214,5 +210,6 @@ export default function getInitialState({
       flash_messages: common.flash_messages,
       conf: common.conf,
     },
+    user,
   };
 }
