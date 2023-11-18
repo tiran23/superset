@@ -46,7 +46,6 @@ from sqlalchemy import (
     inspect,
     Integer,
     or_,
-    select,
     String,
     Table,
     Text,
@@ -227,7 +226,7 @@ class TableColumn(Model, BaseColumn, CertificationMixin):
         """
         Construct a TableColumn object.
 
-        Historically a TableColumn object (from an ORM perspective) was tighly bound to
+        Historically a TableColumn object (from an ORM perspective) was tightly bound to
         a SqlaTable object, however with the introduction of the Query datasource this
         is no longer true, i.e., the SqlaTable relationship is optional.
 
@@ -545,6 +544,7 @@ class SqlaTable(
     template_params = Column(Text)
     extra = Column(Text)
     normalize_columns = Column(Boolean, default=False)
+    always_filter_main_dttm = Column(Boolean, default=False)
 
     baselink = "tablemodelview"
 
@@ -564,6 +564,7 @@ class SqlaTable(
         "fetch_values_predicate",
         "extra",
         "normalize_columns",
+        "always_filter_main_dttm",
     ]
     update_from_object_fields = [f for f in export_fields if f != "database_id"]
     export_parent = "database"
@@ -761,6 +762,8 @@ class SqlaTable(
             data_["health_check_message"] = self.health_check_message
             data_["extra"] = self.extra
             data_["owners"] = self.owners_data
+            data_["always_filter_main_dttm"] = self.always_filter_main_dttm
+            data_["normalize_columns"] = self.normalize_columns
         return data_
 
     @property
@@ -788,34 +791,6 @@ class SqlaTable(
                     msg=ex.message,
                 )
             ) from ex
-
-    def values_for_column(self, column_name: str, limit: int = 10000) -> list[Any]:
-        """Runs query against sqla to retrieve some
-        sample values for the given column.
-        """
-        cols = {col.column_name: col for col in self.columns}
-        target_col = cols[column_name]
-        tp = self.get_template_processor()
-        tbl, cte = self.get_from_clause(tp)
-
-        qry = (
-            select([target_col.get_sqla_col(template_processor=tp)])
-            .select_from(tbl)
-            .distinct()
-        )
-        if limit:
-            qry = qry.limit(limit)
-
-        if self.fetch_values_predicate:
-            qry = qry.where(self.get_fetch_values_predicate(template_processor=tp))
-
-        with self.database.get_sqla_engine_with_context() as engine:
-            sql = qry.compile(engine, compile_kwargs={"literal_binds": True})
-            sql = self._apply_cte(sql, cte)
-            sql = self.mutate_query_from_config(sql)
-
-            df = pd.read_sql_query(sql=sql, con=engine)
-            return df[column_name].to_list()
 
     def mutate_query_from_config(self, sql: str) -> str:
         """Apply config's SQL_QUERY_MUTATOR
@@ -1007,6 +982,8 @@ class SqlaTable(
                     qry = sa.select([sqla_column]).limit(1).select_from(tbl)
                     sql = self.database.compile_sqla_query(qry)
                     col_desc = get_columns_description(self.database, self.schema, sql)
+                    if not col_desc:
+                        raise SupersetGenericDBErrorException("Column not found")
                     is_dttm = col_desc[0]["is_dttm"]  # type: ignore
                 except SupersetGenericDBErrorException as ex:
                     raise ColumnNotFoundException(message=str(ex)) from ex
