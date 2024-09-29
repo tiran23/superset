@@ -41,7 +41,11 @@ export type DatabaseObject = {
   id: number;
 };
 
-export type NotificationMethodOption = 'Email' | 'Slack';
+export type NotificationMethodOption =
+  | 'Email'
+  | 'Slack'
+  | 'Telegram'
+  | 'VKteam';
 
 export type NotificationSetting = {
   method?: NotificationMethodOption;
@@ -123,6 +127,8 @@ export enum AlertState {
 export enum RecipientIconName {
   Email = 'Email',
   Slack = 'Slack',
+  Telegram = 'Telegram',
+  VKTeam = 'VKTeam',
 }
 export interface AlertsReportsConfig {
   ALERT_REPORTS_DEFAULT_WORKING_TIMEOUT: number;

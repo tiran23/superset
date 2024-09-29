@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import emotionStyled from '@emotion/styled';
 import { useTheme as useThemeBasic } from '@emotion/react';
 import createCache from '@emotion/cache';
 
@@ -29,6 +28,7 @@ export {
   withTheme,
 } from '@emotion/react';
 export { default as createEmotionCache } from '@emotion/cache';
+export { default as styled } from '@emotion/styled';
 
 declare module '@emotion/react' {
   // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -49,8 +49,6 @@ export function useTheme() {
 export const emotionCache = createCache({
   key: 'superset',
 });
-
-export const styled = emotionStyled;
 
 const defaultTheme = {
   borderRadius: 4,
