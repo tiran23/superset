@@ -78,8 +78,8 @@ import { PivotTableChartPlugin as PivotTableChartPluginV2 } from '@superset-ui/p
 import { HandlebarsChartPlugin } from '@superset-ui/plugin-chart-handlebars';
 import { PopKPIPlugin } from '@superset-ui/plugin-chart-period-over-period-kpi';
 import { FilterPlugins } from 'src/constants';
+import { SupersetPluginGant } from '@superset-ui/plugin-gant';
 import TimeTableChartPlugin from '../TimeTable';
-import { SupersetPluginGant } from 'superset-plugin-gant';
 
 export default class MainPreset extends Preset {
   constructor() {
