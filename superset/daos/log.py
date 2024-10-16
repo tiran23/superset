@@ -127,7 +127,7 @@ class LogDAO(BaseDAO[Log]):
                     "item_title": item_title,
                     "time": datetime_to_epoch(log.dttm),
                     "time_delta_humanized": humanize.naturaltime(
-                        datetime.utcnow() - log.dttm
+                        datetime.now() - log.dttm
                     ),
                 }
             )

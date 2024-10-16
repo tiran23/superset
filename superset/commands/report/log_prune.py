@@ -42,7 +42,7 @@ class AsyncPruneReportScheduleLogCommand(BaseCommand):
 
             for report_schedule in session.query(ReportSchedule).all():
                 if report_schedule.log_retention is not None:
-                    from_date = datetime.utcnow() - timedelta(
+                    from_date = datetime.now() - timedelta(
                         days=report_schedule.log_retention
                     )
                     try:

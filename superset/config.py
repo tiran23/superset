@@ -143,11 +143,11 @@ BUILD_NUMBER = None
 DEFAULT_VIZ_TYPE = "table"
 
 # default row limit when requesting chart data
-ROW_LIMIT = 50000
+ROW_LIMIT = 300000
 # default row limit when requesting samples from datasource in explore view
 SAMPLES_ROW_LIMIT = 1000
 # default row limit for native filters
-NATIVE_FILTER_DEFAULT_ROW_LIMIT = 1000
+NATIVE_FILTER_DEFAULT_ROW_LIMIT = 10000
 # max rows retrieved by filter select auto complete
 FILTER_SELECT_ROW_LIMIT = 10000
 # default time filter in explore
@@ -348,7 +348,7 @@ PUBLIC_ROLE_LIKE: str | None = None
 # Babel config for translations
 # ---------------------------------------------------
 # Setup default language
-BABEL_DEFAULT_LOCALE = "en"
+BABEL_DEFAULT_LOCALE = "ru"
 # Your application default translation path
 BABEL_DEFAULT_FOLDER = "superset/translations"
 # The allowed translation for your app
@@ -391,7 +391,7 @@ class D3Format(TypedDict, total=False):
 
 D3_FORMAT: D3Format = {}
 
-CURRENCIES = ["USD", "EUR", "GBP", "INR", "MXN", "JPY", "CNY"]
+CURRENCIES = ["USD", "EUR", "GBP", "INR", "MXN", "JPY", "CNY", "Tenge"]
 
 # ---------------------------------------------------
 # Feature flags
@@ -445,17 +445,17 @@ DEFAULT_FEATURE_FLAGS: dict[str, bool] = {
     "DASHBOARD_NATIVE_FILTERS": True,  # deprecated
     "DASHBOARD_CROSS_FILTERS": True,
     # Feature is under active development and breaking changes are expected
-    "DASHBOARD_NATIVE_FILTERS_SET": False,  # deprecated
+    "DASHBOARD_NATIVE_FILTERS_SET": True,  # deprecated
     "DASHBOARD_FILTERS_EXPERIMENTAL": False,  # deprecated
-    "DASHBOARD_VIRTUALIZATION": False,
+    "DASHBOARD_VIRTUALIZATION": True,
     "GLOBAL_ASYNC_QUERIES": False,
     "VERSIONED_EXPORT": True,  # deprecated
-    "EMBEDDED_SUPERSET": False,
+    "EMBEDDED_SUPERSET": True,
     # Enables Alerts and reports new implementation
-    "ALERT_REPORTS": False,
-    "DASHBOARD_RBAC": False,
+    "ALERT_REPORTS": True,
+    "DASHBOARD_RBAC": True,
     "ENABLE_EXPLORE_DRAG_AND_DROP": True,  # deprecated
-    "ENABLE_ADVANCED_DATA_TYPES": False,
+    "ENABLE_ADVANCED_DATA_TYPES": True,
     # Enabling ALERTS_ATTACH_REPORTS, the system sends email and slack message
     # with screenshot and link
     # Disables ALERTS_ATTACH_REPORTS, the system DOES NOT generate screenshot
@@ -482,7 +482,7 @@ DEFAULT_FEATURE_FLAGS: dict[str, bool] = {
     "DRILL_TO_DETAIL": True,
     "DRILL_BY": False,
     "DATAPANEL_CLOSED_BY_DEFAULT": False,
-    "HORIZONTAL_FILTER_BAR": False,
+    "HORIZONTAL_FILTER_BAR": True,
     # The feature is off by default, and currently only supported in Presto and Postgres,
     # and Bigquery.
     # It also needs to be enabled on a per-database basis, by adding the key/value pair
@@ -895,7 +895,7 @@ QUERY_LOGGER = None
 MAPBOX_API_KEY = os.environ.get("MAPBOX_API_KEY", "")
 
 # Maximum number of rows returned for any analytical database query
-SQL_MAX_ROW = 100000
+SQL_MAX_ROW = 200000
 
 # Maximum number of rows displayed in SQL Lab UI
 # Is set to avoid out of memory/localstorage issues in browsers. Does not affect
