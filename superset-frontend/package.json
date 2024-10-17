@@ -138,7 +138,7 @@
     "d3-array": "^1.2.4",
     "d3-color": "^3.1.0",
     "d3-scale": "^2.1.2",
-    "dom-to-image-more": "^2.10.1",
+    "dom-to-image-more": "^3.5.0",
     "dom-to-pdf": "^0.3.2",
     "emotion-rgba": "0.0.9",
     "fast-glob": "^3.2.7",
