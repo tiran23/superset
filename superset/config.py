@@ -158,7 +158,7 @@ DEFAULT_TIME_FILTER = NO_TIME_RANGE
 # [load balancer / proxy / envoy / kong / ...] timeout settings.
 # You should also make sure to configure your WSGI server
 # (gunicorn, nginx, apache, ...) timeout setting to be <= to this setting
-SUPERSET_WEBSERVER_TIMEOUT = int(timedelta(minutes=1).total_seconds())
+SUPERSET_WEBSERVER_TIMEOUT = 880
 
 # this 2 settings are used by dashboard period force refresh feature
 # When user choose auto force refresh frequency
@@ -344,7 +344,7 @@ PUBLIC_ROLE_LIKE: str | None = None
 # Babel config for translations
 # ---------------------------------------------------
 # Setup default language
-BABEL_DEFAULT_LOCALE = "en"
+BABEL_DEFAULT_LOCALE = "ru"
 # Your application default translation path
 BABEL_DEFAULT_FOLDER = "superset/translations"
 # The allowed translation for your app
@@ -871,7 +871,7 @@ QUERY_LOGGER = None
 MAPBOX_API_KEY = os.environ.get("MAPBOX_API_KEY", "")
 
 # Maximum number of rows returned for any analytical database query
-SQL_MAX_ROW = 100000
+SQL_MAX_ROW = 250000
 
 # Maximum number of rows displayed in SQL Lab UI
 # Is set to avoid out of memory/localstorage issues in browsers. Does not affect

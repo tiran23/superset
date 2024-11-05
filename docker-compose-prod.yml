@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-x-superset-image: &superset-image samrozhkov/superset:${TAG}
+x-superset-image: &superset-image krasikov/superset:${TAG}
 x-superset-depends-on: &superset-depends-on
   #- db
   - redis
@@ -94,7 +94,7 @@ services:
   superset-websocket:
     container_name: superset_websocket
     build: ./superset-websocket
-    image: samrozhkov/superset-websocket:latest
+    image: krasikov/superset-websocket:latest
     ports:
       - 8080:8080
     depends_on:
