@@ -23,6 +23,7 @@ import createD3NumberFormatter from './factories/createD3NumberFormatter';
 import createSmartNumberFormatter from './factories/createSmartNumberFormatter';
 import NumberFormats from './NumberFormats';
 import NumberFormatter from './NumberFormatter';
+import createThresholdNumberFormatter from './factories/createTheshlodNumberFormatter';
 
 export default class NumberFormatterRegistry extends RegistryWithDefaultKey<
   NumberFormatter,
@@ -40,6 +41,7 @@ export default class NumberFormatterRegistry extends RegistryWithDefaultKey<
       NumberFormats.SMART_NUMBER,
       createSmartNumberFormatter(),
     );
+    this.registerValue('treshold-billion', createThresholdNumberFormatter());
     this.registerValue(
       NumberFormats.SMART_NUMBER_SIGNED,
       createSmartNumberFormatter({ signed: true }),
