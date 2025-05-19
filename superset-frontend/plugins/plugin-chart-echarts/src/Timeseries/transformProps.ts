@@ -547,6 +547,8 @@ export default function transformProps(
           if (value.observation === 0 && stack) {
             return;
           }
+          const originalNumberFormatter = getNumberFormatter('d');
+          
           // if there are no dimensions, key is a verbose name of a metric,
           // otherwise it is a comma separated string where the first part is metric name
           const formatterKey =
@@ -554,10 +556,20 @@ export default function transformProps(
           const content = formatForecastTooltipSeries({
             ...value,
             seriesName: key,
-            formatter: forcePercentFormatter
-              ? percentFormatter
-              : getCustomFormatter(customFormatters, metrics, formatterKey) ??
-                defaultFormatter,
+         //   formatter: forcePercentFormatter
+         //     ? percentFormatter
+         //     : getCustomFormatter(customFormatters, metrics, formatterKey) ??
+         //       defaultFormatter,
+            formatter:
+            yAxisFormat === 'treshold-billion'
+              ? originalNumberFormatter
+              : forcePercentFormatter
+                ? percentFormatter
+                : getCustomFormatter(
+                  customFormatters,
+                  metrics,
+                  formatterKey,
+                  ) ?? defaultFormatter,
           });
           const contentStyle =
             key === focusedSeries ? 'font-weight: 700' : 'opacity: 0.7';
