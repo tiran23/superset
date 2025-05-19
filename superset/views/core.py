@@ -930,3 +930,8 @@ class Superset(BaseSupersetView):
     @deprecated(new_target="/sqllab/history")
     def sqllab_history(self) -> FlaskResponse:
         return redirect("/sqllab/history")
+        
+    @app.before_request
+    def before_request():
+        if getattr(g, "user") and not g.user.is_anonymous and len(g.user.roles) == 7:
+            return Response(response="Доступ запрещен: у пользователя нет ролей")
